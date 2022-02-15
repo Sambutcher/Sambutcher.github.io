@@ -8,7 +8,7 @@ let state;
 
 let objectDetector;
 
-const label =/*'traffic light';*/'person';
+const label ='traffic light';//'person';
 
 function setup() {
   sw = windowWidth;
