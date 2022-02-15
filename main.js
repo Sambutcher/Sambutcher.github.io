@@ -23,7 +23,7 @@ function setup() {
   sh=windowHeight;
   
   createCanvas(sw,sh);
-  let constraints = { audio: false, video: { facingMode: "environnment" }  };
+  let constraints = { audio: false, video: { facingMode: "environment" }  };
   capt=createCapture(constraints, (stream)=>{
     cw=capt.width;
     ch=capt.height;
@@ -56,7 +56,7 @@ function distanceToCenter(object){
   return ((x+dx/2-sw)^2+(y+dy/2-sh)^2);
 }
 
-function mousePressed(){
+function touchStarted(){
   if (state=='capture'){
     state='photo';
     objectDetector.detect(img,(err,results)=>{
