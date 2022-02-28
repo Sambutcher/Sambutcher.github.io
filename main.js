@@ -15,8 +15,9 @@ console.log('init');
 let constraints = { audio: false, video: { facingMode: "environment" } };
 navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//capture du stream video
   vid.srcObject = stream;
+  console.log(stream);
   vid.play().then(()=>{
-    console.log('video OK')
+    console.log('video OK');
     //initialisation des variables de largeur/hauteur
     vw = vid.videoWidth;
     vh = vid.videoHeight;
@@ -27,7 +28,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
     canvas.height = ch;
     
    cocoSsd.load().then(model => { //initalisation du modèle de détection
-      console.log('modèle OK')
+      console.log('modèle OK');
       objectDetector=model;
       state='capture';
     });
