@@ -10,12 +10,13 @@ let state = 'loading';
 let objectDetector;
 const label ='traffic light'; 
 
-
+console.log('init');
 //initialisation
 let constraints = { audio: false, video: { facingMode: "environment" } };
 navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//capture du stream video
   vid.srcObject = stream;
   vid.play().then(()=>{
+    console.log('video OK')
     //initialisation des variables de largeur/hauteur
     vw = vid.videoWidth;
     vh = vid.videoHeight;
@@ -25,6 +26,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
     ch = window.innerHeight;
     canvas.height = ch;
     cocoSsd.load().then(model => { //initalisation du modèle de détection
+      console.log('modèle OK')
       objectDetector=model;
       state='capture';
     });
@@ -39,10 +41,10 @@ function processVideo() {
     case 'capture':
       ctx.drawImage(vid, (vw - cw * W) / 2, 0, vh * cw / ch, vh, 0, 0, cw, ch); 
       ctx.beginPath(); 
-        ctx.moveTo(cw/2,3*ch/10);
+        ctx.moveTo(cw/2,4*ch/10-cw/10);
         ctx.lineTo(cw/2,4*ch/10);
         ctx.moveTo(cw/2,6*ch/10);
-        ctx.lineTo(cw/2,7*ch/10);
+        ctx.lineTo(cw/2,6*ch/10+cw/10);
         ctx.moveTo(3*cw/10,ch/2);
         ctx.lineTo(4*cw/10,ch/2);
         ctx.moveTo(6*cw/10,ch/2);
