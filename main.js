@@ -15,8 +15,7 @@ console.log('init');
 let constraints = { audio: false, video: { facingMode: "environment" } };
 navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//capture du stream video
   vid.srcObject = stream;
-  console.log(stream);
-  vid.onloadedmetadata=((e) => {
+
     vid.play().then(() => {
       console.log('video OK');
       //initialisation des variables de largeur/hauteur
@@ -34,7 +33,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
         state = 'capture';
       });
     });
-  });
+
 });
 
 //boucle d'affichage
