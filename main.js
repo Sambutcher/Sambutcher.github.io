@@ -25,11 +25,12 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
     canvas.width = cw;
     ch = window.innerHeight;
     canvas.height = ch;
-    cocoSsd.load().then(model => { //initalisation du modèle de détection
+    state='capture';
+  /*  cocoSsd.load().then(model => { //initalisation du modèle de détection
       console.log('modèle OK')
       objectDetector=model;
       state='capture';
-    });
+    });*/
   });
 });
 
