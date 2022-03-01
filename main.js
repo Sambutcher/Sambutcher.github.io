@@ -42,7 +42,6 @@ function processVideo() {
   let begin = Date.now();
   switch (state) {
     case 'capture':
-      console.log(vid);
       ctx.drawImage(vid, (vw - cw * W) / 2, 0, vh * cw / ch, vh, 0, 0, cw, ch);
       ctx.beginPath();
       ctx.moveTo(cw / 2, 4 * ch / 10 - cw / 10);
