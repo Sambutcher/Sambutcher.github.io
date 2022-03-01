@@ -1,8 +1,7 @@
 let vid = document.getElementById('v');
 let canvas = document.getElementById('c');
-let src;
-let dst;
-let cap;
+let src,dst,cap;
+
 let state = 'loading';
 
 console.log(state);

@@ -1,6 +1,7 @@
 let vid = document.getElementById('v');
 let canvas = document.getElementById('c');
 let ctx = canvas.getContext("2d");
+let src,cap;
 let crop;
 let vw, vh, W;
 let cw, ch;
@@ -10,38 +11,43 @@ let state = 'loading';
 let objectDetector;
 const label = 'traffic light';
 
-console.log('init');
+
 //initialisation
 let constraints = { audio: false, video: { facingMode: "environment" } };
 navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//capture du stream video
   vid.srcObject = stream;
+  vid.play().then(() => {
+    vw = vid.videoWidth;
+    vid.width=vw;
+    vh = vid.videoHeight;
+    vid.height=vh;
+    W = vh / vw;
+    cw = window.innerWidth;
+    canvas.width = cw;
+    ch = window.innerHeight;
+    canvas.height = ch;
+    src = new cv.Mat(vh, vw, cv.CV_8UC4);
+    cap = new cv.VideoCapture(vid);
 
-    vid.play().then(() => {
-      console.log('video OK');
-      //initialisation des variables de largeur/hauteur
-      vw = vid.videoWidth;
-      vh = vid.videoHeight;
-      W = vh / vw;
-      cw = window.innerWidth;
-      canvas.width = cw;
-      ch = window.innerHeight;
-      canvas.height = ch;
-
-      cocoSsd.load().then(model => { //initalisation du modèle de détection
-        console.log('modèle OK');
-        objectDetector = model;
-        state = 'capture';
-      });
+    cocoSsd.load().then(model => { //initalisation du modèle de détection
+      objectDetector = model;
+      state = 'capture';
     });
-
+  });
 });
+
+
+
 
 //boucle d'affichage
 const FPS = 30;
 function processVideo() {
   let begin = Date.now();
+
   switch (state) {
     case 'capture':
+      showFrame();
+      //Affichage de la croix
       ctx.drawImage(vid, (vw - cw * W) / 2, 0, vh * cw / ch, vh, 0, 0, cw, ch);
       ctx.beginPath();
       ctx.moveTo(cw / 2, 4 * ch / 10 - cw / 10);
@@ -55,6 +61,7 @@ function processVideo() {
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'white';
       ctx.stroke();
+      
       break;
     case 'photo':
       //
@@ -63,6 +70,7 @@ function processVideo() {
 
       break;
   }
+
   let delay = 1000 / FPS - (Date.now() - begin);
   setTimeout(processVideo, delay);
 }
@@ -73,14 +81,11 @@ setTimeout(processVideo, 0);
 canvas.addEventListener('click', () => {
   if (state == 'capture') {
     state = 'photo';
-
-    ctx.drawImage(vid, (vw - cw * W) / 2, 0, vh * cw / ch, vh, 0, 0, cw, ch);
-
+    showFrame();
     objectDetector.detect(canvas, 20, 0.2).then(result => { // Lancement de la détection
-
+      //recherche du label le plus au centre ->result[j]
       let j = -1;
       let min = cw ** 2 + ch ** 2;
-
       for (let i = 0; i < result.length; i++) {
         let dToC = distanceToCenter(result[i]);
         if (result[i].class == label && (dToC < min)) {
@@ -88,7 +93,7 @@ canvas.addEventListener('click', () => {
           min = dToC;
         }
       }
-
+      //Recherche et affichage du cercle cible
       if (j >= 0) {
         let cible;
         cible = chercheCible(...result[j].bbox);
@@ -98,7 +103,6 @@ canvas.addEventListener('click', () => {
           ctx.strokeStyle = 'white';
           ctx.stroke();
         }
-        console.log(cible);
       }
     })
   } else if (state == 'photo') {
@@ -133,6 +137,7 @@ function chercheCible(x, y, dx, dy) {
   let low1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [120, 150, 150, 0]);
   let high1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [140, 255, 255, 255]);
   cv.inRange(crop, low1, high1, mask1);
+  
 
   let mask2 = new cv.Mat();
   let low2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [20, 150, 150, 0]);
@@ -157,9 +162,30 @@ function chercheCible(x, y, dx, dy) {
     }
   }
 
+  mask1.delete();
+  low1.delete();
+  high1.delete();
+  mask2.delete();
+  low2.delete();
+  high2.delete();
+  mask.delete();
+  contours.delete();
+  hierarchy.delete();
+
+  
   if (maxCircle) {
     return { 'x': maxCircle.center.x + x, 'y': maxCircle.center.y + y, 'r': maxCircle.radius };
   } else {
     return;
   }
+}
+
+function showFrame(){
+  //Affichage de la frame
+  cap.read(src);
+  let rect= new cv.Rect(Math.max(0,(vw - cw * W) / 2), 0,Math.min(vw, vh * cw / ch), vh);
+  let dst=src.roi(rect);
+  cv.resize(dst,dst,new cv.Size(cw,ch));
+  cv.imshow(canvas, dst);
+  dst.delete();
 }
