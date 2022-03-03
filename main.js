@@ -48,7 +48,6 @@ function processVideo() {
     case 'capture':
       showFrame();
       //Affichage de la croix
-      ctx.drawImage(vid, (vw - cw * W) / 2, 0, vh * cw / ch, vh, 0, 0, cw, ch);
       ctx.beginPath();
       ctx.moveTo(cw / 2, 4 * ch / 10 - cw / 10);
       ctx.lineTo(cw / 2, 4 * ch / 10);
@@ -66,8 +65,11 @@ function processVideo() {
     case 'photo':
       //
       break;
-    case 'loading':
-
+    case 'loading': //Affichage de loading
+      ctx.font = '48px serif';
+      ctx.textAlign="center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Loading...", cw/2, ch/2);
       break;
   }
 
@@ -77,7 +79,7 @@ function processVideo() {
 //lancement de la boucle d'affichage
 setTimeout(processVideo, 0);
 
-//Click event
+//Click event (passage de capture <->photo)
 canvas.addEventListener('click', () => {
   if (state == 'capture') {
     state = 'photo';
@@ -118,6 +120,7 @@ window.addEventListener('resize', () => {
   canvas.height = ch;
 })
 
+//calcul de la distance au centre (au carré)
 function distanceToCenter(object) {
   let x = object.bbox[0];
   let y = object.bbox[1];
@@ -126,22 +129,23 @@ function distanceToCenter(object) {
   return ((x + dx / 2 - cw / 2) ** 2 + (y + dy / 2 - ch / 2) ** 2);
 }
 
+//Recherche de la cible dans le feu
 function chercheCible(x, y, dx, dy) {
   let crop;
 
   crop = cv.matFromImageData(ctx.getImageData(x, y, dx, dy));
-  cv.cvtColor(crop, crop, cv.COLOR_BGR2HSV);
+  cv.cvtColor(crop, crop, cv.COLOR_RGB2HSV);
   cv.medianBlur(crop, crop, 5);
 
   let mask1 = new cv.Mat();
-  let low1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [120, 150, 150, 0]);
-  let high1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [140, 255, 255, 255]);
+  let low1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [160, 150, 50, 0]);
+  let high1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [179, 255, 255, 255]);
   cv.inRange(crop, low1, high1, mask1);
   
 
   let mask2 = new cv.Mat();
-  let low2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [20, 150, 150, 0]);
-  let high2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [40, 255, 255, 255]);
+  let low2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [0, 150, 50, 0]);
+  let high2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [70, 255, 255, 255]);
   cv.inRange(crop, low2, high2, mask2);
 
   let mask = new cv.Mat();
