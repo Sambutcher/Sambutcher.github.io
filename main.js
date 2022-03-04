@@ -36,30 +36,47 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
   });
 });
 
-
-
-
 //boucle d'affichage
-const FPS = 30;
+const FPS = 60;
 function processVideo() {
   let begin = Date.now();
 
   switch (state) {
     case 'capture':
       showFrame();
-      //Affichage de la croix
-      ctx.beginPath();
-      ctx.moveTo(cw / 2, 4 * ch / 10 - cw / 10);
-      ctx.lineTo(cw / 2, 4 * ch / 10);
-      ctx.moveTo(cw / 2, 6 * ch / 10);
-      ctx.lineTo(cw / 2, 6 * ch / 10 + cw / 10);
-      ctx.moveTo(3 * cw / 10, ch / 2);
-      ctx.lineTo(4 * cw / 10, ch / 2);
-      ctx.moveTo(6 * cw / 10, ch / 2);
-      ctx.lineTo(7 * cw / 10, ch / 2);
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'white';
-      ctx.stroke();
+      
+      objectDetector.detect(canvas, 20, 0.2).then(result => { // Lancement de la détection
+        //recherche du label le plus au centre ->result[j]
+        let j = -1;
+        let min = cw ** 2 + ch ** 2;
+        for (let i = 0; i < result.length; i++) {
+          let dToC = distanceToCenter(result[i]);
+          if (result[i].class == label && (dToC < min)) {
+            j = i;
+            min = dToC;
+          }
+        }
+        
+        //Recherche et affichage du cercle cible
+        if (j >= 0) {
+          let cible = chercheCible(...result[j].bbox);
+
+          ctx.fillStyle = "black";
+          ctx.fillRect(...result[j].bbox);
+          
+   
+          if (cible) {
+            
+            ctx.beginPath();
+            ctx.arc(cible.x, cible.y, cible.r, 0, 2 * Math.PI, false);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+          }
+        }
+
+        showCross();
+      })
+  
       
       break;
     case 'photo':
@@ -83,30 +100,11 @@ setTimeout(processVideo, 0);
 canvas.addEventListener('click', () => {
   if (state == 'capture') {
     state = 'photo';
-    showFrame();
-    objectDetector.detect(canvas, 20, 0.2).then(result => { // Lancement de la détection
-      //recherche du label le plus au centre ->result[j]
-      let j = -1;
-      let min = cw ** 2 + ch ** 2;
-      for (let i = 0; i < result.length; i++) {
-        let dToC = distanceToCenter(result[i]);
-        if (result[i].class == label && (dToC < min)) {
-          j = i;
-          min = dToC;
-        }
-      }
-      //Recherche et affichage du cercle cible
-      if (j >= 0) {
-        let cible;
-        cible = chercheCible(...result[j].bbox);
-        if (cible) {
-          ctx.beginPath();
-          ctx.arc(cible.x, cible.y, cible.r, 0, 2 * Math.PI, false);
-          ctx.strokeStyle = 'white';
-          ctx.stroke();
-        }
-      }
-    })
+    ctx.beginPath();
+            ctx.arc(cw/2, ch/2, 5, 0, 2 * Math.PI, false);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+    
   } else if (state == 'photo') {
     state = 'capture';
   }
@@ -131,6 +129,7 @@ function distanceToCenter(object) {
 
 //Recherche de la cible dans le feu
 function chercheCible(x, y, dx, dy) {
+
   let crop;
 
   crop = cv.matFromImageData(ctx.getImageData(x, y, dx, dy));
@@ -138,13 +137,12 @@ function chercheCible(x, y, dx, dy) {
   cv.medianBlur(crop, crop, 5);
 
   let mask1 = new cv.Mat();
-  let low1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [160, 150, 50, 0]);
+  let low1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [160, 100, 50, 0]);
   let high1 = new cv.Mat(crop.rows, crop.cols, crop.type(), [179, 255, 255, 255]);
   cv.inRange(crop, low1, high1, mask1);
   
-
   let mask2 = new cv.Mat();
-  let low2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [0, 150, 50, 0]);
+  let low2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [0, 100, 50, 0]);
   let high2 = new cv.Mat(crop.rows, crop.cols, crop.type(), [70, 255, 255, 255]);
   cv.inRange(crop, low2, high2, mask2);
 
@@ -192,4 +190,19 @@ function showFrame(){
   cv.resize(dst,dst,new cv.Size(cw,ch));
   cv.imshow(canvas, dst);
   dst.delete();
+}
+
+function showCross(){
+  ctx.beginPath();
+      ctx.moveTo(cw / 2, 4 * ch / 10 - cw / 10);
+      ctx.lineTo(cw / 2, 4 * ch / 10);
+      ctx.moveTo(cw / 2, 6 * ch / 10);
+      ctx.lineTo(cw / 2, 6 * ch / 10 + cw / 10);
+      ctx.moveTo(3 * cw / 10, ch / 2);
+      ctx.lineTo(4 * cw / 10, ch / 2);
+      ctx.moveTo(6 * cw / 10, ch / 2);
+      ctx.lineTo(7 * cw / 10, ch / 2);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'white';
+      ctx.stroke();
 }
