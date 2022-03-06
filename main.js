@@ -1,6 +1,7 @@
 let vid = document.getElementById('v');
 let canvas = document.getElementById('c');
 let ctx = canvas.getContext("2d");
+let reload=document.getElementById('reload');
 let src, cap;
 let feu;
 let vw, vh, W;
@@ -38,6 +39,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
 
     cocoSsd.load().then(model => { //initalisation du modèle de détection
       objectDetector = model;
+      reload.hidden=false;
       //lancement de la boucle d'affichage
       setTimeout(loop, 0);
     });
@@ -62,8 +64,12 @@ function loop() {
 
 //Click event 
 canvas.addEventListener('click', () => {
+
+  cartouches=Math.max(0,cartouches-1);
+  if (cartouches==0){
+    reload.disabled=false;
+  }
   if (feu && cartouches!=0){
-    cartouches--;
     if (Math.sqrt((feu.x + feu.dx / 2 -cw/2)**2+ (feu.y + feu.dy / 6 - ch/2)**2)<feu.dy/8){
       feu.status[0]=true;
     } 
@@ -74,6 +80,11 @@ canvas.addEventListener('click', () => {
       feu.status[2]=true;
     } 
    }
+})
+
+reload.addEventListener('click', (event) => {
+  reload.disabled=true;
+  cartouches=3;
 })
 
 //resize event pour modifier les variables de width/height
@@ -142,7 +153,6 @@ function detectFeu() {
       }
     } else {
       feu = null;
-      cartouches=3;
     }
 
   })
