@@ -40,29 +40,8 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
     cocoSsd.load().then(model => { //initalisation du modèle de détection
       objectDetector = model;
       reload.hidden=false;
-      //lancement de la boucle d'affichage
-      setTimeout(loop, 0);
-    });
-  });
-});
 
-//boucle d'affichage
-const FPS = 60;
-function loop() {
-  let begin = Date.now();
-
-  showFrame();
-  detectFeu();
-  showFeu()
-  showCross();
-  showCartouches();
-
-  let delay = 1000 / FPS - (Date.now() - begin);
-  setTimeout(loop, delay);
-}
-
-
-//Click event 
+      //Click event 
 canvas.addEventListener('click', () => {
 
   cartouches=Math.max(0,cartouches-1);
@@ -86,6 +65,29 @@ reload.addEventListener('click', (event) => {
   reload.disabled=true;
   cartouches=3;
 })
+      //lancement de la boucle d'affichage
+      setTimeout(loop, 0);
+    });
+  });
+});
+
+//boucle d'affichage
+const FPS = 60;
+function loop() {
+  let begin = Date.now();
+
+  showFrame();
+  detectFeu();
+  showFeu()
+  showCross();
+  showCartouches();
+
+  let delay = 1000 / FPS - (Date.now() - begin);
+  setTimeout(loop, delay);
+}
+
+
+
 
 //resize event pour modifier les variables de width/height
 window.addEventListener('resize', () => {
