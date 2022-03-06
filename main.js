@@ -6,6 +6,9 @@ let feu;
 let vw, vh, W;
 let cw = window.innerWidth;
 let ch = window.innerHeight;
+let cartouches=3;
+let cartoucheVide=new Image();
+let cartouchePleine=new Image();
 
 let objectDetector;
 
@@ -30,32 +33,37 @@ navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {//captu
     src = new cv.Mat(vh, vw, cv.CV_8UC4);
     cap = new cv.VideoCapture(vid);
 
+    cartoucheVide.src='cartoucheVide.png';
+    cartouchePleine.src='cartouchePleine.png';
+
     cocoSsd.load().then(model => { //initalisation du modèle de détection
       objectDetector = model;
       //lancement de la boucle d'affichage
-      setTimeout(processVideo, 0);
+      setTimeout(loop, 0);
     });
   });
 });
 
 //boucle d'affichage
 const FPS = 60;
-function processVideo() {
+function loop() {
   let begin = Date.now();
 
   showFrame();
   detectFeu();
   showFeu()
   showCross();
+  showCartouches();
 
   let delay = 1000 / FPS - (Date.now() - begin);
-  setTimeout(processVideo, delay);
+  setTimeout(loop, delay);
 }
 
 
-//Click event (passage de capture <->photo)
+//Click event 
 canvas.addEventListener('click', () => {
-  if (feu){
+  if (feu && cartouches!=0){
+    cartouches--;
     if (Math.sqrt((feu.x + feu.dx / 2 -cw/2)**2+ (feu.y + feu.dy / 6 - ch/2)**2)<feu.dy/8){
       feu.status[0]=true;
     } 
@@ -75,16 +83,6 @@ window.addEventListener('resize', () => {
   ch = window.innerHeight;
   canvas.height = ch;
 })
-
-//calcul de la distance au centre (au carré)
-function distanceToCenter(object) {
-  let x = object.bbox[0];
-  let y = object.bbox[1];
-  let dx = object.bbox[2];
-  let dy = object.bbox[3];
-  return ((x + dx / 2 - cw / 2) ** 2 + (y + dy / 2 - ch / 2) ** 2);
-}
-
 
 
 function showFrame() {
@@ -112,6 +110,16 @@ function showCross() {
   ctx.stroke();
 }
 
+
+//calcul de la distance au centre (au carré)
+function distanceToCenter(object) {
+  let x = object.bbox[0];
+  let y = object.bbox[1];
+  let dx = object.bbox[2];
+  let dy = object.bbox[3];
+  return ((x + dx / 2 - cw / 2) ** 2 + (y + dy / 2 - ch / 2) ** 2);
+}
+
 function detectFeu() {
   objectDetector.detect(canvas, 20, 0.2).then(result => { // Lancement de la détection
     //recherche du label le plus au centre ->result[j]
@@ -125,7 +133,6 @@ function detectFeu() {
       }
     }
 
-
     //Recherche et affichage du cercle cible
     if (j >= 0) {
       if (!feu) {
@@ -135,6 +142,7 @@ function detectFeu() {
       }
     } else {
       feu = null;
+      cartouches=3;
     }
 
   })
@@ -166,6 +174,17 @@ function showFeu(){
     ctx.fill();
     ctx.stroke();
   }
+}
+function showCartouches(){
+for (let i=0;i<3;i++){
+  
+  if (i<cartouches){
+    ctx.drawImage(cartouchePleine,5+cw*i/20,5,cw/20,cw/10);
+  
+  } else{
+    ctx.drawImage(cartoucheVide,5+cw*i/20,5,cw/20,cw/10);
+  }
+}
 }
 
 //Recherche de la cible dans le feu
