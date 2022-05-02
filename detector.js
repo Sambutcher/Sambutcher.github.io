@@ -31,7 +31,6 @@ export async function detectFeu() {
         lastDetectionsCache.shift();
     }
 
-    console.log(meanLastDetection);
     return meanLastDetection;
 }
 
