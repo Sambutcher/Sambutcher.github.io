@@ -24,26 +24,26 @@ map.locate({
 });
 
 function onLocationFound(e) {
-    console.log(track);
     if (track.length == 0) {
-        firstPoint = e.latlng;
-        track.push(e.latlng);
-        L.circle(e.latlng, {
+        firstPoint = e.latlng; //{ lat: 48.9140808, lng: 2.3600318 };
+        track.push(firstPoint);
+        L.circle(firstPoint, {
             radius: 500,
             color: 'red'
         }).addTo(map);
-        L.marker(e.latlng, { icon: trafficLightIcon }).addTo(map);
-        marker = L.marker(e.latlng);
+        L.marker(firstPoint, { icon: trafficLightIcon }).addTo(map);
+        marker = L.marker(firstPoint);
+        marker.addTo(map);  
     } else {
         let lastValue = track[track.length - 1];
         let distance = e.latlng.distanceTo(lastValue);
         if (distance > 10) {
-            distanceParcourue += e.latlng.distanceTo(lastValue);
-            L.polyline(track, { color: 'blue' }).addTo(map);
+            track.push(e.latlng);
+            distanceParcourue += distance;
+            L.polyline(track, {color: 'blue'}).addTo(map);
             map.removeLayer(marker);
             marker = L.marker(e.latlng);
-            marker.addTo(map).bindPopup("Distance: " + distanceParcourue + " m").openPopup();
-            track.push(e.latlng);
+            marker.addTo(map).bindPopup("Distance: " + distanceParcourue + " m").openPopup();  
         }
     }
 
