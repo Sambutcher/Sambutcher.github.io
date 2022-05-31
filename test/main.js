@@ -37,7 +37,7 @@ function onLocationFound(e) {
     } else {
         let lastValue = track[track.length - 1];
         let distance = Math.floor(e.latlng.distanceTo(lastValue));
-        if (distance > 3*e.accuracy) {
+        if (distance > 1*e.accuracy) {
             track.push(e.latlng);
             distanceParcourue += distance;
             L.polyline(track, {color: 'blue'}).addTo(map);
