@@ -2,6 +2,7 @@ var map = L.map('map').fitWorld();
 let track = [];
 let distanceParcourue = 0;
 let firstPoint;
+let marker;
 
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -31,12 +32,14 @@ function onLocationFound(e) {
             color:'red'
         }).addTo(map);
         L.marker(e.latlng,{icon:trafficLightIcon}).addTo(map);
+        marker=L.marker(e.latlng);
     } else {
         let lastValue = track[track.length - 1];
         distanceParcourue +=  e.latlng.distanceTo(lastValue);
         L.polyline(track, { color: 'blue' }).addTo(map);
-        L.marker(e.latlng).addTo(map)
-            .bindPopup("Distance: "+distanceParcourue+ " m").openPopup();
+        map.removeLayer(marker);
+        marker=L.marker(e.latlng);
+        marker.addTo(map).bindPopup("Distance: "+distanceParcourue+ " m").openPopup();
     }
     
 }
